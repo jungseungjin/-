@@ -1,9 +1,9 @@
 import puppeteer from "puppeteer";
 
-const bunjang = async(item, pages) => {
+const bunjang = async(browser,item, pages) => {
+    const instance = await browser;
+    const page = await instance.newPage();
     try{
-        const browser = await puppeteer.launch({headless: true});
-        const page = await browser.newPage();
         await page.setViewport({
             width: 1920,
             height: 2560,
@@ -32,14 +32,13 @@ const bunjang = async(item, pages) => {
                         const title_selector = article_selector + ' > a > div.sc-LKuAh > div.sc-iBEsjs'
                         const regDate_selector = article_selector + ' > a > div.sc-LKuAh div.sc-kxynE > div:nth-child(2) > span'
                         const price_selector = article_selector + ' > a > div.sc-LKuAh > div.sc-kxynE > div'
-                        const article_info_selector = article_selector + ' > a > div.sc-LKuAh'
-
+                        const address_selector = article_selector + ' > a > div.sc-chbbiW'
                         const article = {
                             href : 'https://m.bunjang.co.kr' + await page.$eval(href_selector,el=>el.getAttribute("href")),
                             imgAlt : await page.$eval(img_selector,el=>el.getAttribute("alt")),
                             imgSrc : await page.$eval(img_selector,el=>el.getAttribute("src")),
                             title : await page.$eval(title_selector,el=>el.textContent),
-                            address : await page.$eval(article_info_selector,el=>el.textContent),
+                            address : await page.$eval(address_selector,el=>el.textContent),
                             price : await page.$eval(price_selector,el=>el.textContent),
                             regDate : await page.$eval(regDate_selector,el=>el.textContent)
                         }
@@ -52,13 +51,14 @@ const bunjang = async(item, pages) => {
             }
             query_page+=1;
         }
-
+        await page.close();
         return{
             success:true,
             data
         }
     }catch(err){
         console.log(err)
+        await page.close();
         return {
             success:false,
             err

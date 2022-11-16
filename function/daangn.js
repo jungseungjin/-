@@ -1,16 +1,15 @@
 
 import puppeteer from 'puppeteer';
 
-const daangn = async(item,pages) => {
+const daangn = async(browser,item,pages) => {
+    const instance = await browser;
+    const page = await instance.newPage();
     try{
-        const browser = await puppeteer.launch({headless: true});
-        const page = await browser.newPage();
-      
         await page.goto(`https://www.daangn.com/search/${item}`, {waitUntil: 'networkidle2'});
         
         //중고거래 물품이 있는 단어인지 확인
         const result_container_selector = '#flea-market-wrap > p'
-        await page.waitForSelector(result_container_selector,{visible:true})
+        await page.waitForSelector(result_container_selector,{visible:true,timeout:3000})//이거 못찾으면 중고물품없는것
         const title = await page.$eval(result_container_selector,el=>el.textContent)
         if(title !== '중고거래'){
             throw Error;
@@ -60,11 +59,14 @@ const daangn = async(item,pages) => {
             }
             data.push(article)
         }
+        await page.close();
         return{
             success:true,
             data
         }
     }catch(err){
+        console.log(err)
+        await page.close();
         return {
             success:false,
             err

@@ -1,9 +1,9 @@
 import puppeteer from "puppeteer";
 
-const joongna = async(item, pages) => {
+const joongna = async(browser,item, pages) => {
+    const instance = await browser;
+    const page = await instance.newPage();
     try{
-        const browser = await puppeteer.launch({headless: true});
-        const page = await browser.newPage();
         await page.setViewport({
             width: 1920,
             height: 2560,
@@ -69,13 +69,14 @@ const joongna = async(item, pages) => {
                 
             }
         }
-
+        await page.close();
         return{
             success:true,
             data
         }
     }catch(err){
         console.log(err)
+        await page.close();
         return {
             success:false,
             err
