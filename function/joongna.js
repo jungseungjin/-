@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
 const joongna = async(item, pages) => {
     try{
-        const browser = await puppeteer.launch({headless: false});
+        const browser = await puppeteer.launch({headless: true});
         const page = await browser.newPage();
         await page.setViewport({
             width: 1920,
@@ -38,20 +38,30 @@ const joongna = async(item, pages) => {
                         const href_selector = article_selector + ' > a'
                         const img_selector = article_selector + ' > a > div > div.thumbWrap > div > img'
                         const title_selector = article_selector + ' > a > div > div.titleTxt > span'
-                        const content_selector = article_selector + ' > a > div > div.registInfo > span'
                         const price_selector = article_selector + ' > a > div > div.priceTxt'
-                    
                         const article = {
                             href : 'https://web.joongna.com' + await page.$eval(href_selector,el=>el.getAttribute("href")),
                             imgAlt : await page.$eval(img_selector,el=>el.getAttribute("alt")),
                             imgSrc : await page.$eval(img_selector,el=>el.getAttribute("src")),
                             title : await page.$eval(title_selector,el=>el.textContent),
-                            content : await page.$eval(content_selector,el=>el.textContent),
                             price : await page.$eval(price_selector,el=>el.textContent),
+                        }
+                        
+                        try{
+                        // a > div > div.registInfo > span:nth-child(1) // 주소일때도 등록시간일때도 있음
+                        // a > div > div.registInfo > span:nth-child(2) // 있으면 시간임 
+                            const check_selector = article_selector + ' > a > div > div.registInfo > span:nth-child(2)'
+                            await page.waitForSelector(check_selector,{visible:true,timeout:10})
+                            const address_selector = article_selector + ' > a > div > div.registInfo > span:nth-child(2)'
+                            const regDate_selector = article_selector + ' > a > div > div.registInfo > span:nth-child(2)'
+                            article.address = await page.$eval(address_selector,el=>el.textContent)
+                            article.regDate = await page.$eval(regDate_selector,el=>el.textContent)
+                        }catch(err){
+                            const regDate_selector = article_selector + ' > a > div > div.registInfo > span:nth-child(1)'
+                            article.regDate = await page.$eval(regDate_selector,el=>el.textContent)
                         }
                         data.push(article)     
                     }catch(err){
-        
                     } 
                 }
                 query_page+=1;
